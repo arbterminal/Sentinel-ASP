@@ -123,7 +123,7 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:.5
 <thead><tr><th>Symbol</th><th>Side</th><th>Size</th><th>Lev</th><th>Entry</th><th>Mark</th><th>Liq.Price</th><th>Dist%</th><th>Funding/d</th><th>P&amp;L</th><th>Health</th><th></th></tr></thead>
 <tbody id="positionsBody"></tbody>
 </table>
-<div style="margin-top:10px;text-align:right"><span id="portfolioSummary" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mi)"></span></div>
+<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px"><span id="portfolioSummary" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mi)"></span><button class="btn bs" onclick="refreshAllPositions()">↻ Refresh Prices</button></div>
 </div>
 </div>
 
@@ -209,13 +209,13 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:.5
 <input type="checkbox" id="tgRecovery" checked>
 Notify when a position recovers above threshold
 </label>
-<div class="ra">
-<button class="btn bo" onclick="startAlerts()">Start</button>
-<button class="btn bd" onclick="stopAlerts()">Stop</button>
-<button class="btn bm" onclick="snoozeAlerts(1)">Snooze 1h</button>
-<button class="btn bm" onclick="snoozeAlerts(4)">Snooze 4h</button>
-<button class="btn bm" onclick="snoozeAlerts(12)">Snooze 12h</button>
-<button class="btn bm" onclick="clearLog()">Clear Log</button>
+<div class="ra" style="gap:8px;">
+<button class="btn" style="min-width:80px;border-color:var(--sa);color:var(--sa);" onclick="startAlerts()">Start</button>
+<button class="btn" style="min-width:80px;border-color:var(--al);color:var(--al);" onclick="stopAlerts()">Stop</button>
+<button class="btn" style="min-width:100px;" onclick="snoozeAlerts(1)">Snooze 1h</button>
+<button class="btn" style="min-width:100px;" onclick="snoozeAlerts(4)">Snooze 4h</button>
+<button class="btn" style="min-width:100px;" onclick="snoozeAlerts(12)">Snooze 12h</button>
+<button class="btn" style="min-width:100px;" onclick="clearLog()">Clear Log</button>
 </div>
 <div class="if">
 <span id="tgStatus" class="st" style="margin-top:0"></span>
