@@ -214,6 +214,39 @@ function simulate(){
   '<div class="wc"><div class="wl">P&amp;L</div><div class="wv '+(pnl>=0?'sa':'da')+'">'+(pnl>=0?'+':'')+fmtUSD(pnl)+'</div></div>'+
   '<div class="wc"><div class="wl">Pair</div><div class="wv" style="font-size:13px">'+pair+'</div></div>'+
   '<div class="wc"><div class="wl">Direction</div><div class="wv">'+side+'</div></div>';
+ // show live slider
+ var sliderWrap=$('simLevSlider');
+ if(sliderWrap){
+  sliderWrap.classList.remove('hd');
+  var range=$('simLevRange');
+  if(range)range.value=lev;
+  updateSimLive();
+ }
+}
+
+function updateSimLive(){
+ var lev=parseInt($('simLevRange').value)||1;
+ $('simLevDisplay').textContent=lev+'x';
+ var sym=$('simSymbol').value.trim();
+ var side=$('simSide').value;
+ var size=parseFloat($('simSize').value)||0;
+ var entry=parseFloat($('simEntry').value)||0;
+ var mark=parseFloat($('simMark').value)||entry;
+ if(!size||!entry||!mark)return;
+ var liqPrice=calcLiq(side,entry,lev,0);
+ var distPct=Math.abs((mark-liqPrice)/mark*100);
+ var notional=size*lev;
+ var pnl=side==='long'?(mark-entry)/entry*notional:(entry-mark)/entry*notional;
+ if(isNaN(pnl))pnl=0;
+ var dc=fmtPctClass(distPct,true);
+ var live=$('simLiveResults');
+ if(live){
+  live.innerHTML=
+   '<div class="wc"><div class="wl">Liq Price</div><div class="wv '+dc+'">'+liqPrice.toFixed(2)+'</div></div>'+
+   '<div class="wc"><div class="wl">Distance</div><div class="wv '+dc+'">'+distPct.toFixed(1)+'%</div></div>'+
+   '<div class="wc"><div class="wl">Notional</div><div class="wv">'+fmtUSD(notional)+'</div></div>'+
+   '<div class="wc"><div class="wl">P&amp;L</div><div class="wv '+(pnl>=0?'sa':'da')+'">'+(pnl>=0?'+':'')+fmtUSD(pnl)+'</div></div>';
+ }
 }
 function addSimToPortfolio(){
  var sym=$('simSymbol').value.trim();
@@ -418,6 +451,7 @@ window.fetchPositions=fetchPositions;
 window.fetchSimPrice=fetchSimPrice;
 window.simulate=simulate;
 window.addSimToPortfolio=addSimToPortfolio;
+window.updateSimLive=updateSimLive;
 window.setStressMode=setStressMode;
 
 // Init

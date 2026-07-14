@@ -184,10 +184,16 @@ h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:.5
 <div class="ra">
 <button class="btn" onclick="simulate()">Run Simulation</button>
 <button class="btn bs" onclick="addSimToPortfolio()">+ Add to Portfolio</button>
-<button class="btn bs bm" onclick="fetchSimPrice()">Get Live Price</button>
+<button class="btn bs" onclick="fetchSimPrice()" style="margin-left:auto">Get Live Price</button>
 </div>
 <div id="simPriceDisplay" style="margin-bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mi);padding:8px 12px;background:var(--nd);border-radius:4px"></div>
 <div class="wr" id="simResults"></div>
+<div id="simLevSlider" class="hd" style="margin-top:14px;padding:12px 0;border-top:1px solid var(--nl)">
+<div class="fl" style="max-width:300px"><label>Leverage: <span id="simLevDisplay">10x</span></label>
+<input type="range" id="simLevRange" min="1" max="125" value="10" style="width:100%;height:4px;-webkit-appearance:none;background:var(--nl);border-radius:2px;outline:none" oninput="updateSimLive()">
+</div>
+<div class="wr" id="simLiveResults"></div>
+</div>
 <div class="st" id="simStatus"></div>
 </div>
 </div>
