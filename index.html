@@ -1,264 +1,260 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Sentinel — Risk Copilot</title>
+<title>Sentinel — Risk Copilot for OKX</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
-
 :root{
-  --navy-deep:#0B1220;
-  --navy-panel:#131C2E;
-  --navy-line:#26334A;
-  --brass:#C9A227;
-  --brass-dim:#7d6a2c;
-  --alert:#C1462F;
-  --safe:#4B8B6F;
-  --mist:#8A94A6;
-  --paper:#ECE7DA;
+ --navy-deep:#0B1220; --navy-panel:#131C2E; --navy-line:#26334A;
+ --brass:#C9A227; --brass-dim:#7d6a2c; --alert:#C1462F; --safe:#4B8B6F;
+ --mist:#8A94A6; --paper:#ECE7DA;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{
-  background:var(--navy-deep);
-  color:var(--paper);
-  font-family:'Inter',sans-serif;
-  min-height:100vh;
-  padding:32px 20px 60px;
-}
-.wrap{max-width:960px;margin:0 auto;}
-
-/* Header */
-header{
-  display:flex;justify-content:space-between;align-items:flex-end;
-  border-bottom:1px solid var(--navy-line);
-  padding-bottom:20px;margin-bottom:32px;
-  flex-wrap:wrap;gap:12px;
-}
+body{background:var(--navy-deep);color:var(--paper);font-family:'Inter',sans-serif;min-height:100vh;padding:32px 20px 60px;}
+.wrap{max-width:980px;margin:0 auto;}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--navy-line);padding-bottom:20px;margin-bottom:32px;flex-wrap:wrap;gap:12px;}
 .brand{display:flex;align-items:center;gap:14px;}
-.brand-mark{
-  width:38px;height:38px;border-radius:50%;
-  border:2px solid var(--brass);
-  display:flex;align-items:center;justify-content:center;
-  position:relative;
-}
-.brand-mark::after{
-  content:'';width:4px;height:4px;background:var(--brass);border-radius:50%;
-}
-.brand-mark::before{
-  content:'';position:absolute;width:14px;height:1px;background:var(--brass);
-  top:50%;left:50%;transform-origin:0 0;transform:rotate(-40deg);
-}
+.brand-mark{width:38px;height:38px;border-radius:50%;border:2px solid var(--brass);}
 h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;letter-spacing:0.5px;}
-.tagline{color:var(--mist);font-size:13px;margin-top:2px;letter-spacing:0.3px;}
-.badge{
-  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);
-  border:1px solid var(--brass-dim);padding:6px 10px;border-radius:3px;
-  letter-spacing:0.5px;
-}
-
-/* Section labels */
-.section-label{
-  font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--brass);
-  letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;
-  display:flex;align-items:center;gap:10px;
-}
+.tagline{color:var(--mist);font-size:13px;margin-top:2px;}
+.badge{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);border:1px solid var(--brass-dim);padding:6px 10px;border-radius:3px;}
+.section-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--brass);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;gap:10px;}
 .section-label::after{content:'';flex:1;height:1px;background:var(--navy-line);}
-
-/* Positions */
-.positions{display:grid;gap:14px;margin-bottom:48px;}
-.position-card{
-  background:var(--navy-panel);border:1px solid var(--navy-line);
-  border-radius:6px;padding:20px 22px;
-  display:grid;grid-template-columns:1fr auto 140px;gap:20px;align-items:center;
-}
-.position-card.critical{border-color:var(--alert);box-shadow:0 0 0 1px rgba(193,70,47,0.15);}
-.pos-name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;}
-.pos-meta{color:var(--mist);font-size:12px;font-family:'IBM Plex Mono',monospace;margin-top:4px;}
-.pos-stats{display:flex;gap:28px;font-family:'IBM Plex Mono',monospace;font-size:13px;}
-.pos-stats div span{display:block;color:var(--mist);font-size:10px;letter-spacing:1px;margin-bottom:3px;text-transform:uppercase;}
-.pos-stats .val{color:var(--paper);font-size:14px;}
-.critical .pos-stats .distance{color:var(--alert);}
-
-/* Gauge */
+.panel{background:var(--navy-panel);border:1px solid var(--navy-line);border-radius:6px;padding:24px;margin-bottom:36px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin-bottom:16px;}
+.field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mist);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px;}
+.field input,.field select{width:100%;background:var(--navy-deep);border:1px solid var(--navy-line);color:var(--paper);padding:10px 12px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:14px;}
+.field input:focus,.field select:focus{outline:none;border-color:var(--brass);}
+.row-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;}
+.btn{background:transparent;border:1px solid var(--brass);color:var(--brass);padding:10px 18px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;letter-spacing:0.4px;}
+.btn:hover{background:var(--brass);color:var(--navy-deep);}
+.status-line{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mist);margin-top:6px;min-height:16px;}
+.status-line.err{color:var(--alert);}
+.status-line.ok{color:var(--safe);}
+.result-row{display:grid;grid-template-columns:1fr auto 140px;gap:24px;align-items:center;padding-top:20px;border-top:1px dashed var(--navy-line);}
+.result-stats{display:flex;gap:28px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:13px;}
+.result-stats div span{display:block;color:var(--mist);font-size:10px;letter-spacing:1px;margin-bottom:3px;text-transform:uppercase;}
+.result-stats .val{color:var(--paper);font-size:16px;}
+.result-stats .val.danger{color:var(--alert);}
 .gauge{width:110px;height:65px;position:relative;}
 .gauge svg{width:100%;height:100%;overflow:visible;}
-.gauge-label{
-  position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
-  font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mist);
-}
-
-/* Alert banner */
-.alert-banner{
-  background:rgba(193,70,47,0.1);border:1px solid var(--alert);
-  border-radius:6px;padding:16px 20px;margin-bottom:36px;
-  display:flex;align-items:center;gap:14px;font-size:13px;
-}
-.alert-banner .dot{width:8px;height:8px;background:var(--alert);border-radius:50%;flex-shrink:0;animation:pulse 1.6s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
-.alert-banner strong{color:var(--paper);}
-.alert-banner button{
-  margin-left:auto;background:var(--alert);color:var(--paper);border:none;
-  padding:9px 16px;border-radius:4px;font-family:'IBM Plex Mono',monospace;
-  font-size:12px;cursor:pointer;letter-spacing:0.3px;white-space:nowrap;
-}
-.alert-banner button:hover{background:#a83a26;}
-
-/* Stress test */
-.stress-panel{background:var(--navy-panel);border:1px solid var(--navy-line);border-radius:6px;padding:28px;}
-.stress-intro{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px;}
-.stress-intro p{color:var(--mist);font-size:13px;max-width:480px;line-height:1.6;}
-.run-btn{
-  background:transparent;border:1px solid var(--brass);color:var(--brass);
-  padding:12px 22px;border-radius:4px;font-family:'IBM Plex Mono',monospace;
-  font-size:13px;cursor:pointer;letter-spacing:0.5px;transition:all .15s;white-space:nowrap;
-}
-.run-btn:hover{background:var(--brass);color:var(--navy-deep);}
-
-.scenarios{display:none;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-top:8px;}
-.scenarios.show{display:grid;}
-.scenario{
-  border:1px solid var(--navy-line);border-radius:6px;padding:18px;
-  background:rgba(255,255,255,0.015);
-}
+.alert-banner{background:rgba(193,70,47,0.1);border:1px solid var(--alert);border-radius:6px;padding:16px 20px;margin-bottom:36px;display:none;align-items:center;gap:14px;font-size:13px;}
+.alert-banner.show{display:flex;}
+.alert-banner .dot{width:8px;height:8px;background:var(--alert);border-radius:50%;flex-shrink:0;}
+.positions-list{display:grid;gap:10px;margin-top:16px;}
+.pos-item{display:flex;justify-content:space-between;padding:12px 16px;border:1px solid var(--navy-line);border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;}
+.pos-item:hover{border-color:var(--brass);}.scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:20px;}
+.scenario{border:1px solid var(--navy-line);border-radius:6px;padding:18px;}
+.scenario.liquidated{border-color:var(--alert);}
 .scenario h4{font-family:'Fraunces',serif;font-size:15px;margin-bottom:6px;}
-.scenario .impact{font-family:'IBM Plex Mono',monospace;font-size:24px;color:var(--alert);margin:10px 0 8px;}
-.scenario .impact.mild{color:var(--brass);}
+.scenario .impact{font-family:'IBM Plex Mono',monospace;font-size:22px;margin:10px 0 8px;color:var(--brass);}
+.scenario.liquidated .impact{color:var(--alert);}
 .scenario p{color:var(--mist);font-size:12px;line-height:1.5;}
-.scenario .hedge{
-  margin-top:12px;padding-top:12px;border-top:1px dashed var(--navy-line);
-  font-size:12px;color:var(--safe);
-}
-
-footer{margin-top:48px;text-align:center;color:var(--mist);font-size:11px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.5px;}
+.scenario .hedge{margin-top:12px;padding-top:12px;border-top:1px dashed var(--navy-line);font-size:12px;color:var(--safe);}
+footer{margin-top:48px;text-align:center;color:var(--mist);font-size:11px;font-family:'IBM Plex Mono',monospace;}
 footer span{color:var(--brass);}
+.note{font-size:11px;color:var(--mist);margin-top:10px;line-height:1.6;}
 </style>
 </head>
 <body>
 <div class="wrap">
+ <header>
+ <div class="brand">
+ <div class="brand-mark"></div>
+ <div><h1>Sentinel</h1><div class="tagline">Risk-aware copilot for leveraged crypto portfolios</div></div>
+ </div>
+ <div class="badge">ASP · OKX.AI GENESIS · LIVE ON OKX MARKET DATA</div>
+ </header>
 
-  <header>
-    <div class="brand">
-      <div class="brand-mark"></div>
-      <div>
-        <h1>Sentinel</h1>
-        <div class="tagline">Risk-aware copilot for leveraged crypto portfolios</div>
-      </div>
-    </div>
-    <div class="badge">ASP · OKX.AI GENESIS · LIVE DEMO</div>
-  </header>
+ <div class="section-label">Connect your OKX account (optional, read-only)</div>
+ <div class="panel">
+ <div class="form-grid">
+ <div class="field"><label>API Key</label><input id="apiKey" type="password" placeholder="Read-only key"></div>
+ <div class="field"><label>API Secret</label><input id="apiSecret" type="password"></div>
+ <div class="field"><label>Passphrase</label><input id="apiPass" type="password"></div>
+ </div>
+ <div class="row-actions">
+ <button class="btn" onclick="fetchPositions()">Fetch my positions</button>
+ </div>
+ <div class="status-line" id="apiStatus"></div>
+ <div class="positions-list" id="positionsList"></div>
+ <div class="note">Your key never leaves your browser — requests are signed locally and sent directly to OKX's API. Use a read-only key. If your browser blocks this call (CORS), positions must be entered manually below — this is an OKX/browser security restriction, not a bug in Sentinel.</div>
+ </div>
 
-  <div class="section-label">Liquidation Guard — real-time watch</div>
+ <div class="section-label">Liquidation Guard — position parameters</div>
+ <div class="panel">
+ <div class="form-grid">
+ <div class="field"><label>Instrument</label><input id="pair" value="BTC-USDT-SWAP"></div>
+ <div class="field"><label>Side</label><select id="side"><option value="long">Long</option><option value="short">Short</option></select></div>
+ <div class="field"><label>Leverage (x)</label><input id="leverage" type="number" value="10" min="1"></div>
+ <div class="field"><label>Entry price</label><input id="entry" type="number" value="61200"></div>
+ <div class="field"><label>Mark price</label><input id="mark" type="number" value="63940"></div>
+ </div>
+ <div class="row-actions">
+ <button class="btn" onclick="fetchLivePrice()">Pull live price from OKX</button>
+ </div>
+ <div class="status-line" id="priceStatus"></div>
+ <div class="result-row">
+ <div class="result-stats" id="stats"></div>
+ <div class="gauge" id="gaugeBox"></div>
+ </div>
+ </div>
 
-  <div class="positions" id="positions"></div>
+ <div class="alert-banner" id="alertBanner">
+ <div class="dot"></div>
+ <div id="alertText"></div>
+ </div>
 
-  <div class="alert-banner" id="alertBanner" style="display:none;">
-    <div class="dot"></div>
-    <div><strong>SOL-USDT-SWAP</strong> is 4.2% from liquidation. Sentinel recommends trimming leverage from 20x → 8x, or adding $340 margin.</div>
-    <button onclick="simulateAction()">Preview fix</button>
-  </div>
+ <div class="section-label">Stress Twin — how this position survives a shock</div>
+ <div class="panel">
+ <div class="scenarios" id="scenarios"></div>
+ </div>
 
-  <div class="section-label">Stress Twin — instant scenario check</div>
-
-  <div class="stress-panel">
-    <div class="stress-intro">
-      <p>Run your current portfolio through three historical shock scenarios. Sentinel builds a shadow copy of your positions — nothing is executed until you approve a hedge.</p>
-      <button class="run-btn" onclick="runStress()">Run stress test →</button>
-    </div>
-    <div class="scenarios" id="scenarios">
-      <div class="scenario">
-        <h4>2022-style Crash</h4>
-        <div class="impact">−38.4%</div>
-        <p>Cascading liquidations across leveraged longs, ~72h drawdown window.</p>
-        <div class="hedge">Suggested hedge: open 0.3x BTC perp short, cost ≈ $12/day</div>
-      </div>
-      <div class="scenario">
-        <h4>Stablecoin Depeg</h4>
-        <div class="impact mild">−11.2%</div>
-        <p>Temporary depeg of a major stablecoin held in your idle balance.</p>
-        <div class="hedge">Suggested hedge: rotate 40% idle USDT into T-bill-backed stable</div>
-      </div>
-      <div class="scenario">
-        <h4>Flash Crash (15 min)</h4>
-        <div class="impact">−22.7%</div>
-        <p>Thin order-book wick triggers cascading liquidations on SOL, ETH.</p>
-        <div class="hedge">Suggested hedge: pre-set reduce-only stop at −9% on SOL position</div>
-      </div>
-    </div>
-  </div>
-
-  <footer>Built for the <span>OKX.AI Genesis Hackathon</span> — demo data, not connected to a live wallet</footer>
+ <footer>Built for the <span>OKX.AI Genesis Hackathon</span> — live OKX market data, real liquidation math (simplified isolated-margin model, no fees/funding)</footer>
 </div>
 
 <script>
-const positions = [
-  {name:'BTC-USDT-SWAP', side:'Long 10x', entry:61200, mark:63940, liq:55200, critical:false},
-  {name:'ETH-USDT-SWAP', side:'Short 5x', entry:3260, mark:3190, liq:3610, critical:false},
-  {name:'SOL-USDT-SWAP', side:'Long 20x', entry:148.2, mark:154.8, liq:161.9, critical:true},
-];
-
-function distancePct(mark, liq){
-  return Math.abs((liq - mark) / mark * 100);
+const ids = ['pair','side','leverage','entry','mark'];async function fetchLivePrice(){
+ const pair = document.getElementById('pair').value.trim();
+ const statusEl = document.getElementById('priceStatus');
+ statusEl.textContent = 'Fetching...'; statusEl.className='status-line';
+ try{
+ const res = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${encodeURIComponent(pair)}`);
+ const json = await res.json();
+ if(json.code === '0' && json.data && json.data[0]){
+ document.getElementById('mark').value = json.data[0].last;
+ statusEl.textContent = 'Live price pulled from OKX at '+new Date().toLocaleTimeString();
+ statusEl.className = 'status-line ok';
+ recalc();
+ } else {
+ statusEl.textContent = 'OKX returned no data for this instrument — check the symbol.';
+ statusEl.className = 'status-line err';
+ }
+ } catch(e){
+ statusEl.textContent = 'Could not reach OKX public API from this browser (network/CORS). Enter mark price manually.';
+ statusEl.className = 'status-line err';
+ }
 }
 
+async function fetchPositions(){
+ const key = document.getElementById('apiKey').value;
+ const secret = document.getElementById('apiSecret').value;
+ const pass = document.getElementById('apiPass').value;
+ const statusEl = document.getElementById('apiStatus');
+ if(!key||!secret||!pass){
+ statusEl.textContent = 'Enter API key, secret and passphrase first.';
+ statusEl.className = 'status-line err';
+ return;
+ }
+ statusEl.textContent = 'Signing request and calling OKX...'; statusEl.className='status-line';
+ const timestamp = new Date().toISOString();
+ const method = 'GET';
+ const requestPath = '/api/v5/account/positions';
+ const prehash = timestamp + method + requestPath;
+ const sign = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(prehash, secret));
+ try{
+ const res = await fetch('https://www.okx.com' + requestPath, {
+ method: 'GET',
+ headers: {
+ 'OK-ACCESS-KEY': key,
+ 'OK-ACCESS-SIGN': sign,
+ 'OK-ACCESS-TIMESTAMP': timestamp,
+ 'OK-ACCESS-PASSPHRASE': pass,
+ 'Content-Type': 'application/json'
+ }
+ });
+ const json = await res.json();
+ if(json.code === '0'){
+ const list = document.getElementById('positionsList');
+ if(json.data.length === 0){
+ list.innerHTML = '<div class="pos-item">No open positions found on this account.</div>';
+ } else {
+ list.innerHTML = json.data.map(p => `<div class="pos-item" onclick='loadPosition(${JSON.stringify(p).replace(/'/g,"&apos;")})'>
+ <span>${p.instId} · ${p.posSide}</span><span>lev ${p.lever}x · entry ${p.avgPx}</span></div>`).join('');
+ statusEl.textContent = json.data.length+' position(s) loaded — click one to analyze.';
+ statusEl.className = 'status-line ok';
+ }
+ } else {
+ statusEl.textContent = 'OKX rejected the request: ' + (json.msg || json.code);
+ statusEl.className = 'status-line err';
+ }
+ } catch(e){
+ statusEl.textContent = 'Browser blocked this private call (CORS). This is expected for direct browser calls to private endpoints — a small server-side proxy is needed for full auto-import. Enter position manually below for now.';
+ statusEl.className = 'status-line err';
+ }
+}
+
+function loadPosition(p){
+ document.getElementById('pair').value = p.instId;
+ document.getElementById('side').value = p.posSide === 'short' ? 'short' : 'long';
+ document.getElementById('leverage').value = p.lever;
+ document.getElementById('entry').value = p.avgPx;
+ fetchLivePrice();
+}function calcLiq(side, entry, leverage){
+ return side === 'long' ? entry * (1 - 1/leverage) : entry * (1 + 1/leverage);
+}
 function gaugeSVG(pct, critical){
-  // pct: 0-100 where lower = more danger. Map to semicircle needle angle -90..90
-  const clamped = Math.max(0, Math.min(100, pct));
-  const angle = -90 + (clamped/25)*90; // 0-25% distance maps across the arc, saturating
-  const color = critical ? '#C1462F' : (clamped < 15 ? '#C9A227' : '#4B8B6F');
-  const rad = (angle-90) * Math.PI/180;
-  const cx=55, cy=58, r=42;
-  const nx = cx + r*Math.cos(rad);
-  const ny = cy + r*Math.sin(rad);
-  return `<svg viewBox="0 0 110 65">
-    <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="#26334A" stroke-width="6" stroke-linecap="round"/>
-    <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
-      stroke-dasharray="${Math.PI*42}" stroke-dashoffset="${Math.PI*42*(1-clamped/25)}"/>
-    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2"/>
-    <circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/>
-  </svg>`;
+ const clamped = Math.max(0, Math.min(100, pct));
+ const angle = -90 + (Math.min(clamped,25)/25)*90;
+ const color = critical ? '#C1462F' : (clamped < 15 ? '#C9A227' : '#4B8B6F');
+ const rad = (angle-90) * Math.PI/180;
+ const cx=55, cy=58, r=42;
+ const nx = cx + r*Math.cos(rad), ny = cy + r*Math.sin(rad);
+ return `<svg viewBox="0 0 110 65">
+ <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="#26334A" stroke-width="6" stroke-linecap="round"/>
+ <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
+ stroke-dasharray="${Math.PI*42}" stroke-dashoffset="${Math.PI*42*(1-Math.min(clamped,25)/25)}"/>
+ <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2"/>
+ <circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/></svg>`;
 }
+function recalc(){
+ const pair = document.getElementById('pair').value;
+ const side = document.getElementById('side').value;
+ const leverage = parseFloat(document.getElementById('leverage').value) || 1;
+ const entry = parseFloat(document.getElementById('entry').value) || 0;
+ const mark = parseFloat(document.getElementById('mark').value) || 0;
+ const liq = calcLiq(side, entry, leverage);
+ const distPct = mark > 0 ? Math.abs((mark - liq) / mark * 100) : 0;
+ const critical = distPct < 6;
 
-function render(){
-  const el = document.getElementById('positions');
-  el.innerHTML = positions.map(p=>{
-    const d = distancePct(p.mark, p.liq);
-    return `<div class="position-card ${p.critical?'critical':''}">
-      <div>
-        <div class="pos-name">${p.name}</div>
-        <div class="pos-meta">${p.side} · entry ${p.entry.toLocaleString()}</div>
-      </div>
-      <div class="pos-stats">
-        <div><span>Mark</span><div class="val">${p.mark.toLocaleString()}</div></div>
-        <div><span>Liq. price</span><div class="val">${p.liq.toLocaleString()}</div></div>
-        <div><span>Distance</span><div class="val distance">${d.toFixed(1)}%</div></div>
-      </div>
-      <div class="gauge">${gaugeSVG(d, p.critical)}<div class="gauge-label">to liq.</div></div>
-    </div>`;
-  }).join('');
-  document.getElementById('alertBanner').style.display =
-    positions.some(p=>p.critical) ? 'flex' : 'none';
+ document.getElementById('stats').innerHTML = `
+ <div><span>Liquidation</span><div class="val ${critical?'danger':''}">${liq.toFixed(2)}</div></div>
+ <div><span>Distance</span><div class="val ${critical?'danger':''}">${distPct.toFixed(1)}%</div></div>`;
+ document.getElementById('gaugeBox').innerHTML = gaugeSVG(distPct, critical);
+
+ const banner = document.getElementById('alertBanner');
+ if(critical){
+ const safeLev = Math.max(1, Math.floor(1/(distPct/100 + 0.05)));
+ banner.classList.add('show');
+ document.getElementById('alertText').innerHTML =
+ '<strong>'+pair+'</strong> is '+distPct.toFixed(1)+'% from liquidation. Recommendation: reduce leverage to '+safeLev+'x or add margin.';
+ } else {
+ banner.classList.remove('show');
+ }
+
+ const scenarios = [
+ {name:'2022-style crash', mag:0.38},
+ {name:'Flash crash (15 min)', mag:0.23},
+ {name:'Correction', mag:0.12}
+ ];
+ document.getElementById('scenarios').innerHTML = scenarios.map(s=>{
+ const shockMark = side === 'long' ? mark*(1-s.mag) : mark*(1+s.mag);
+ const liquidated = side === 'long' ? shockMark <= liq : shockMark >= liq;
+ const newDist = liquidated ? 0 : Math.abs((shockMark - liq)/shockMark*100);
+ const safeLev = Math.max(1, Math.floor(1/(s.mag + 0.05)));
+ return `<div class="scenario ${liquidated?'liquidated':''}">
+ <h4>${s.name}</h4>
+ <div class="impact">${liquidated ? 'LIQUIDATED' : newDist.toFixed(1)+'% buffer left'}</div>
+ <p>Price moves ${(s.mag*100).toFixed(0)}% against the position.</p>
+ <div class="hedge">To survive: leverage ≤ ${safeLev}x</div>
+ </div>`;
+ }).join('');
 }
-
-function tick(){
-  // gentle simulated market movement for the live-monitoring feel
-  positions.forEach(p=>{
-    const drift = (Math.random()-0.5) * p.mark * 0.003;
-    p.mark = +(p.mark + drift).toFixed(2);
-    p.critical = distancePct(p.mark, p.liq) < 6;
-  });
-  render();
-}
-
-function runStress(){
-  document.getElementById('scenarios').classList.add('show');
-}
-
-function simulateAction(){
-  alert('In the live version, this opens a one-tap confirm to reduce leverage via the OKX API. No funds are moved without your approval.');
-}
-
-render();
-setInterval(tick, 2200);
+ids.forEach(id => document.getElementById(id).addEventListener('input', recalc));
+recalc();
+fetchLivePrice();
 </script>
 </body>
 </html>
