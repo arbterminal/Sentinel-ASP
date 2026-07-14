@@ -4,269 +4,248 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sentinel — Risk Copilot for OKX</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🛡️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>\u{1F6E1}\uFE0F</text></svg>">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
-:root{--navy-deep:#0B1220;--navy-panel:#131C2E;--navy-line:#26334A;--brass:#C9A227;--brass-dim:#7d6a2c;--alert:#C1462F;--safe:#4B8B6F;--mist:#8A94A6;--paper:#ECE7DA}
+:root{--nd:#0B1220;--np:#131C2E;--nl:#26334A;--br:#C9A227;--bd:#7d6a2c;--al:#C1462F;--sa:#4B8B6F;--mi:#8A94A6;--pa:#ECE7DA}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--navy-deep);color:var(--paper);font-family:'Inter',sans-serif;min-height:100vh;padding:24px 16px 60px}
+body{background:var(--nd);color:var(--pa);font-family:'Inter',sans-serif;min-height:100vh;padding:24px 16px 60px}
 .wrap{max-width:1100px;margin:0 auto}
-header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--navy-line);padding-bottom:16px;margin-bottom:24px;flex-wrap:wrap;gap:10px}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid var(--nl);padding-bottom:16px;margin-bottom:24px;flex-wrap:wrap;gap:10px}
 .brand{display:flex;align-items:center;gap:14px}
-.brand-mark{width:36px;height:36px;border-radius:50%;border:2px solid var(--brass)}
+.bm{width:36px;height:36px;border-radius:50%;border:2px solid var(--br)}
 h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;letter-spacing:.5px}
-.tagline{color:var(--mist);font-size:12px;margin-top:2px}
-.badge{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--brass);border:1px solid var(--brass-dim);padding:5px 8px;border-radius:3px}
-.section-label{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--brass);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
-.section-label::after{content:'';flex:1;height:1px;background:var(--navy-line)}
-.panel{background:var(--navy-panel);border:1px solid var(--navy-line);border-radius:6px;padding:20px;margin-bottom:28px}
-.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:12px}
-.field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mist);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
-.field input,.field select{width:100%;background:var(--navy-deep);border:1px solid var(--navy-line);color:var(--paper);padding:8px 10px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:13px}
-.field input:focus,.field select:focus{outline:none;border-color:var(--brass)}
-.row-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
-.btn{background:transparent;border:1px solid var(--brass);color:var(--brass);padding:8px 16px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:.4px;transition:all 0.15s}
-.btn:hover{background:var(--brass);color:var(--navy-deep)}
-.btn-sm{font-size:10px;padding:4px 10px}
-.btn-ok{border-color:var(--safe);color:var(--safe)}
-.btn-ok:hover{background:var(--safe);color:var(--navy-deep)}
-.btn-danger{border-color:var(--alert);color:var(--alert)}
-.btn-danger:hover{background:var(--alert);color:var(--paper)}
-.btn-dim{border-color:var(--mist);color:var(--mist)}
-.btn-dim:hover{background:var(--mist);color:var(--navy-deep)}
-.status-line{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mist);margin-top:4px;min-height:14px}
-.status-line.err{color:var(--alert)}
-.status-line.ok{color:var(--safe)}
-.positions-table{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:10px}
-.positions-table th{color:var(--mist);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--navy-line);text-align:right}
-.positions-table th:first-child,.positions-table td:first-child{text-align:left}
-.positions-table td{padding:6px 8px;border-bottom:1px solid rgba(38,51,74,0.4);text-align:right;white-space:nowrap}
-.positions-table tr:hover td{background:rgba(201,162,39,0.04)}
-.positions-table .danger{color:var(--alert)}
-.positions-table .safe{color:var(--safe)}
-.positions-table .warn{color:var(--brass)}
-.remove-btn{cursor:pointer;opacity:.5}
-.remove-btn:hover{opacity:1;color:var(--alert)}
-.health-score{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--navy-deep);border-radius:6px;margin-bottom:20px;flex-wrap:wrap}
-.health-ring{width:72px;height:72px;flex-shrink:0}
-.health-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
-.health-info{flex:1;min-width:160px}
-.health-info .score-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mist);letter-spacing:1px;text-transform:uppercase}
-.health-info .score-val{font-family:'Fraunces',serif;font-size:28px;line-height:1.1}
-.health-info .score-sub{font-size:11px;color:var(--mist);margin-top:4px}
-.health-breakdown{display:flex;gap:20px;flex-wrap:wrap;font-size:11px;color:var(--mist)}
-.health-breakdown span{font-family:'IBM Plex Mono',monospace}
-.scenarios{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
-.scenario{border:1px solid var(--navy-line);border-radius:6px;padding:16px}
-.scenario.liquidated{border-color:var(--alert)}
-.scenario h4{font-family:'Fraunces',serif;font-size:14px;margin-bottom:4px;color:var(--paper)}
-.scenario .impact{font-family:'IBM Plex Mono',monospace;font-size:20px;margin:8px 0 6px;color:var(--brass)}
-.scenario.liquidated .impact{color:var(--alert)}
-.scenario p{color:var(--mist);font-size:11px;line-height:1.5}
-.scenario .hedge{margin-top:10px;padding-top:10px;border-top:1px dashed var(--navy-line);font-size:11px;color:var(--safe)}
-.what-if-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:12px}
-.what-if-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px}
-.what-if-card{background:var(--navy-deep);border-radius:6px;padding:10px;border:1px solid var(--navy-line)}
-.what-if-card .wi-label{color:var(--mist);font-size:9px;text-transform:uppercase;letter-spacing:.5px}
-.what-if-card .wi-value{font-size:14px;margin-top:2px;font-weight:600}
-.hidden{display:none!important}
-.note{font-size:10px;color:var(--mist);margin-top:8px;line-height:1.5}
-.price-ticker{padding:12px 16px;background:var(--navy-deep);border-radius:6px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid var(--navy-line)}
-.price-ticker .pt-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mist);text-transform:uppercase;letter-spacing:.5px}
-.price-ticker .pt-price{font-family:'Fraunces',serif;font-size:20px;color:var(--paper)}
-.price-ticker .pt-change{font-family:'IBM Plex Mono',monospace;font-size:12px}
-.price-ticker .pt-input{display:flex;gap:6px;align-items:center}
-.price-ticker input{background:var(--navy-panel);border:1px solid var(--navy-line);color:var(--paper);padding:6px 10px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;width:140px}
-.price-ticker input:focus{outline:none;border-color:var(--brass)}
-footer{margin-top:40px;text-align:center;color:var(--mist);font-size:10px;font-family:'IBM Plex Mono',monospace}
-footer span{color:var(--brass)}
-.switch-row{display:flex;align-items:center;gap:16px;margin-bottom:12px;flex-wrap:wrap}
-.switch-row label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mist);display:flex;align-items:center;gap:6px;cursor:pointer}
-.switch-row input[type=checkbox]{-webkit-appearance:none;appearance:none;width:36px;height:20px;background:var(--navy-line);border-radius:10px;position:relative;cursor:pointer;flex-shrink:0}
-.switch-row input[type=checkbox]::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--mist);border-radius:50%;transition:all 0.2s}
-.switch-row input[type=checkbox]:checked{background:var(--safe)}
-.switch-row input[type=checkbox]:checked::after{left:18px;background:var(--paper)}
-.tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
-.tab{padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--navy-line);border-radius:4px 4px 0 0;cursor:pointer;color:var(--mist);background:transparent;user-select:none;transition:all 0.15s}
-.tab.active{color:var(--brass);border-color:var(--brass);background:rgba(201,162,39,0.06)}
-.alerts-log{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mist);max-height:240px;overflow-y:auto;margin-top:12px;background:var(--navy-deep);padding:8px;border-radius:4px;border:1px solid var(--navy-line)}
-.alerts-log div{padding:3px 0;border-bottom:1px solid rgba(38,51,74,0.3)}
-.alerts-log div:last-child{border-bottom:none}
-.inline-flex{display:inline-flex;gap:8px;align-items:center}
+.tg{color:var(--mi);font-size:12px;margin-top:2px}
+.bdg{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--br);border:1px solid var(--bd);padding:5px 8px;border-radius:3px}
+.sl{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--br);letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.sl::after{content:'';flex:1;height:1px;background:var(--nl)}
+.pn{background:var(--np);border:1px solid var(--nl);border-radius:6px;padding:20px;margin-bottom:28px}
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:12px}
+.fl label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.fl input,.fl select{width:100%;background:var(--nd);border:1px solid var(--nl);color:var(--pa);padding:8px 10px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:13px}
+.fl input:focus,.fl select:focus{outline:none;border-color:var(--br)}
+.ra{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.btn{background:transparent;border:1px solid var(--br);color:var(--br);padding:8px 16px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:11px;cursor:pointer;letter-spacing:.4px;transition:all 0.15s}
+.btn:hover{background:var(--br);color:var(--nd)}
+.bs{font-size:10px;padding:4px 10px}
+.bo{border-color:var(--sa);color:var(--sa)}.bo:hover{background:var(--sa);color:var(--nd)}
+.bd{border-color:var(--al);color:var(--al)}.bd:hover{background:var(--al);color:var(--pa)}
+.bm{border-color:var(--mi);color:var(--mi)}.bm:hover{background:var(--mi);color:var(--nd)}
+.st{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);margin-top:4px;min-height:14px}
+.st.er{color:var(--al)}.st.ok{color:var(--sa)}
+.pt{width:100%;border-collapse:collapse;font-family:'IBM Plex Mono',monospace;font-size:11px;margin-top:10px}
+.pt th{color:var(--mi);font-size:9px;letter-spacing:1px;text-transform:uppercase;padding:6px 8px;border-bottom:1px solid var(--nl);text-align:right}
+.pt th:first-child,.pt td:first-child{text-align:left}
+.pt td{padding:6px 8px;border-bottom:1px solid rgba(38,51,74,0.4);text-align:right;white-space:nowrap}
+.pt tr:hover td{background:rgba(201,162,39,0.04)}
+.pt .da{color:var(--al)}.pt .sa{color:var(--sa)}.pt .wa{color:var(--br)}
+.rm{cursor:pointer;opacity:.5}.rm:hover{opacity:1;color:var(--al)}
+.hs{display:flex;align-items:center;gap:16px;padding:16px 20px;background:var(--nd);border-radius:6px;margin-bottom:20px;flex-wrap:wrap}
+.hr{width:72px;height:72px;flex-shrink:0}
+.hr svg{width:100%;height:100%;transform:rotate(-90deg)}
+.hi{flex:1;min-width:160px}
+.hi .sl{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--mi);letter-spacing:1px;text-transform:uppercase}
+.hi .sv{font-family:'Fraunces',serif;font-size:28px;line-height:1.1}
+.hi .ss{font-size:11px;color:var(--mi);margin-top:4px}
+.hb{display:flex;gap:20px;flex-wrap:wrap;font-size:11px;color:var(--mi)}
+.hb span{font-family:'IBM Plex Mono',monospace}
+.scg{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.sc{border:1px solid var(--nl);border-radius:6px;padding:16px}
+.sc.li{border-color:var(--al)}
+.sc h4{font-family:'Fraunces',serif;font-size:14px;margin-bottom:4px}
+.sc .im{font-family:'IBM Plex Mono',monospace;font-size:20px;margin:8px 0 6px;color:var(--br)}
+.sc.li .im{color:var(--al)}
+.sc p{color:var(--mi);font-size:11px;line-height:1.5}
+.sc .h{margin-top:10px;padding-top:10px;border-top:1px dashed var(--nl);font-size:11px;color:var(--sa)}
+.wg{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:12px}
+.wr{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.wc{background:var(--nd);border-radius:6px;padding:10px;border:1px solid var(--nl)}
+.wc .wl{color:var(--mi);font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+.wc .wv{font-size:14px;margin-top:2px;font-weight:600}
+.hd{display:none!important}
+.nt{font-size:10px;color:var(--mi);margin-top:8px;line-height:1.5}
+.tg{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.tb{padding:6px 14px;font-family:'IBM Plex Mono',monospace;font-size:10px;border:1px solid var(--nl);border-radius:4px 4px 0 0;cursor:pointer;color:var(--mi);background:transparent;user-select:none}
+.tb.ac{color:var(--br);border-color:var(--br);background:rgba(201,162,39,0.06)}
+.al{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);max-height:240px;overflow-y:auto;margin-top:12px;background:var(--nd);padding:8px;border-radius:4px;border:1px solid var(--nl)}
+.al div{padding:3px 0;border-bottom:1px solid rgba(38,51,74,0.3)}
+.al div:last-child{border-bottom:none}
+.if{display:inline-flex;gap:8px;align-items:center}
+.sr{display:flex;align-items:center;gap:12px;margin-bottom:12px;flex-wrap:wrap}
+.sr label{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);display:flex;align-items:center;gap:6px;cursor:pointer}
+.sr input[type=checkbox]{-webkit-appearance:none;appearance:none;width:36px;height:20px;background:var(--nl);border-radius:10px;position:relative;cursor:pointer;flex-shrink:0}
+.sr input[type=checkbox]::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--mi);border-radius:50%;transition:all 0.2s}
+.sr input[type=checkbox]:checked{background:var(--sa)}
+.sr input[type=checkbox]:checked::after{left:18px;background:var(--pa)}
+.sct{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.sct .sct-lbl{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);margin-right:6px}
+.sct .sct-btn{border:1px solid var(--nl);border-radius:4px;padding:4px 12px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;color:var(--mi);background:transparent}
+.sct .sct-btn.ac{color:var(--br);border-color:var(--br);background:rgba(201,162,39,0.06)}
+.sct .sct-btn:hover{background:var(--nl)}
+.stress-pos-select{max-width:280px;margin-bottom:10px}
+.stress-pos-select select{width:100%;background:var(--nd);border:1px solid var(--nl);color:var(--pa);padding:8px 10px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px}
 @media(max-width:700px){
- .health-score{flex-direction:column;align-items:stretch;text-align:center}
- .positions-table{font-size:9px}
- .positions-table th,.positions-table td{padding:4px}
- .what-if-grid{grid-template-columns:1fr 1fr}
- .price-ticker{flex-direction:column;align-items:stretch}
+ .hs{flex-direction:column;align-items:stretch;text-align:center}
+ .pt{font-size:9px}.pt th,.pt td{padding:4px}
+ .wg{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 <div class="wrap">
 <header>
-<div class="brand">
-<div class="brand-mark"></div>
-<div><h1>Sentinel</h1><div class="tagline">Portfolio risk copilot — liquidation guard | stress twin | funding monitor</div></div>
-</div>
-<div class="badge">ASP · OKX.AI GENESIS · PRICE TICKER</div>
+<div class="brand"><div class="bm"></div><div><h1>Sentinel</h1><div class="tg">Portfolio risk copilot \u2014 liquidation guard | stress twin | funding monitor</div></div></div>
+<div class="bdg">ASP \u00b7 OKX.AI GENESIS \u00b7 PRICE TICKER</div>
 </header>
 
-<div class="tabs">
-<div class="tab active" onclick="switchTab('portfolio')">Portfolio Overview</div>
-<div class="tab" onclick="switchTab('manual')">+ Add Position</div>
-<div class="tab" onclick="switchTab('api')">OKX API Import</div>
-<div class="tab" onclick="switchTab('simulator')">Simulator</div>
-<div class="tab" onclick="switchTab('alerts')">Telegram Alerts</div>
-<div class="tab" onclick="switchTab('about')">About</div>
+<div class="tg">
+<div class="tb ac" onclick="switchTab('portfolio')">Portfolio Overview</div>
+<div class="tb" onclick="switchTab('manual')">+ Add Position</div>
+<div class="tb" onclick="switchTab('api')">OKX API Import</div>
+<div class="tb" onclick="switchTab('simulator')">Simulator</div>
+<div class="tb" onclick="switchTab('alerts')">Telegram Alerts</div>
+<div class="tb" onclick="switchTab('about')">About</div>
 </div>
 
 <div id="tab-portfolio" class="tab-content">
-<div class="health-score" id="healthBox">
-<div class="health-ring"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#26334A" stroke-width="5"/><circle id="healthArc" cx="36" cy="36" r="30" fill="none" stroke="#4B8B6F" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="0"/></svg></div>
-<div class="health-info">
-<div class="score-label">Portfolio Health Score</div>
-<div class="score-val" id="healthScoreVal">--</div>
-<div class="score-sub" id="healthSub">Add positions to see your score</div>
-</div>
-<div class="health-breakdown" id="healthBreakdown"></div>
+<div class="hs" id="healthBox">
+<div class="hr"><svg viewBox="0 0 72 72"><circle cx="36" cy="36" r="30" fill="none" stroke="#26334A" stroke-width="5"/><circle id="healthArc" cx="36" cy="36" r="30" fill="none" stroke="#4B8B6F" stroke-width="5" stroke-linecap="round" stroke-dasharray="188.5" stroke-dashoffset="0"/></svg></div>
+<div class="hi"><div class="sl">Portfolio Health Score</div><div class="sv" id="healthScoreVal">--</div><div class="ss" id="healthSub">Add positions to see your score</div></div>
+<div class="hb" id="healthBreakdown"></div>
 </div>
 
-<div class="section-label">Active Positions</div>
-<div class="panel" id="positionsPanel">
-<div id="noPositions" style="color:var(--mist);font-size:12px;text-align:center;padding:20px">No positions tracked yet. Switch to "+ Add Position" tab to add one.</div>
+<div class="sl">Active Positions</div>
+<div class="pn" id="positionsPanel">
+<div id="noPositions" style="color:var(--mi);font-size:12px;text-align:center;padding:20px">No positions tracked yet. Switch to "+ Add Position" tab to add one.</div>
 <div id="tableWrap">
-<table class="positions-table" id="positionsTable">
+<table class="pt" id="positionsTable">
 <thead><tr><th>Symbol</th><th>Side</th><th>Size</th><th>Lev</th><th>Entry</th><th>Mark</th><th>Liq.Price</th><th>Dist%</th><th>Funding/d</th><th>P&amp;L</th><th>Health</th><th></th></tr></thead>
 <tbody id="positionsBody"></tbody>
 </table>
-<div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
-<span id="portfolioSummary" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mist)"></span>
-<button class="btn btn-sm btn-ok" onclick="refreshAllPositions()">\u21bb Refresh All Prices</button>
-</div>
+<div style="margin-top:10px;text-align:right"><span id="portfolioSummary" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mi)"></span></div>
 </div>
 </div>
 
-<div class="section-label">Stress Twin — crisis scenario simulation</div>
-<div class="panel"><div class="scenarios" id="scenarios"></div></div>
+<div class="sl">Stress Twin \u2014 crisis scenario simulation</div>
+<div class="pn">
+<div class="sct" id="sctControl">
+<span class="sct-lbl">Mode:</span>
+<span class="sct-btn ac" data-mode="cross" onclick="setStressMode('cross')">Cross (all positions)</span>
+<span class="sct-btn" data-mode="isolated" onclick="setStressMode('isolated')">Isolated (single position)</span>
 </div>
-
-<div id="tab-manual" class="tab-content hidden">
-<div class="section-label">Add Position Manually</div>
-<div class="panel">
-<div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
-<div class="field"><label>Symbol (e.g. BTC)</label><input id="mPair" value="BTC"></div>
-<div class="field"><label>Side</label><select id="mSide"><option value="long">Long</option><option value="short">Short</option></select></div>
-<div class="field"><label>Size (USDT)</label><input id="mSize" type="number" value="1000" min="1"></div>
-<div class="field"><label>Leverage</label><input id="mLev" type="number" value="10" min="1"></div>
-<div class="field"><label>Entry Price</label><input id="mEntry" type="number" value="61200"></div>
+<div class="stress-pos-select" id="stressIsolatedWrap">
+<select id="stressPosSelect"><option value="">-- Select a position --</option></select>
 </div>
-<div class="row-actions">
-<button class="btn" onclick="addManualPos()">+ Add Position</button>
-</div>
-<div class="status-line" id="mStatus"></div>
+<div class="scg" id="scenarios"></div>
 </div>
 </div>
 
-<div id="tab-api" class="tab-content hidden">
-<div class="section-label">OKX API — Import Real Positions</div>
-<div class="panel">
-<div class="form-grid">
-<div class="field"><label>API Key</label><input id="apiKey" type="password" placeholder="Read-only key"></div>
-<div class="field"><label>API Secret</label><input id="apiSecret" type="password"></div>
-<div class="field"><label>Passphrase</label><input id="apiPass" type="password"></div>
+<div id="tab-manual" class="tab-content hd">
+<div class="sl">Add Position Manually</div>
+<div class="pn">
+<div class="fg" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+<div class="fl"><label>Symbol (e.g. BTC)</label><input id="mPair" value="BTC"></div>
+<div class="fl"><label>Side</label><select id="mSide"><option value="long">Long</option><option value="short">Short</option></select></div>
+<div class="fl"><label>Size (USDT)</label><input id="mSize" type="number" value="1000" min="1"></div>
+<div class="fl"><label>Leverage</label><input id="mLev" type="number" value="10" min="1"></div>
+<div class="fl"><label>Entry Price</label><input id="mEntry" type="number" value="61200"></div>
 </div>
-<div class="row-actions">
-<button class="btn" onclick="fetchPositions()">Fetch &amp; Import Positions</button>
-</div>
-<div class="status-line" id="apiStatus"></div>
-<div class="note">Keys never leave your browser — signed and sent directly to OKX. CORS may block private endpoints in-browser; use manual import as fallback.</div>
+<div class="ra"><button class="btn" onclick="addManualPos()">+ Add Position</button></div>
+<div class="st" id="mStatus"></div>
 </div>
 </div>
 
-<div id="tab-simulator" class="tab-content hidden">
-<div class="section-label">Position Simulator</div>
-<div class="panel">
-<div class="price-ticker">
-<div class="pt-label">Live Price Check</div>
-<div class="pt-input">
-<input id="simPair" value="BTC" placeholder="Symbol e.g. BTC">
-<button class="btn btn-sm" onclick="fetchSimPrice()">Get Price</button>
+<div id="tab-api" class="tab-content hd">
+<div class="sl">OKX API \u2014 Import Real Positions</div>
+<div class="pn">
+<div class="fg">
+<div class="fl"><label>API Key</label><input id="apiKey" type="password" placeholder="Read-only key"></div>
+<div class="fl"><label>API Secret</label><input id="apiSecret" type="password"></div>
+<div class="fl"><label>Passphrase</label><input id="apiPass" type="password"></div>
 </div>
-<div id="simPriceDisplay" style="margin-top:6px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mist);flex:1;text-align:right"></div>
+<div class="ra"><button class="btn" onclick="fetchPositions()">Fetch &amp; Import Positions</button></div>
+<div class="st" id="apiStatus"></div>
+<div class="nt">Keys never leave your browser \u2014 signed and sent directly to OKX. CORS may block private endpoints in-browser; use manual import as fallback.</div>
 </div>
-<div class="what-if-grid">
-<div class="field"><label>Symbol</label><input id="simSymbol" value="BTC"></div>
-<div class="field"><label>Side</label><select id="simSide"><option value="long">Long</option><option value="short">Short</option></select></div>
-<div class="field"><label>Size (USDT)</label><input id="simSize" type="number" value="1000" min="1"></div>
-<div class="field"><label>Leverage</label><input id="simLev" type="number" value="10" min="1" max="125"></div>
-<div class="field"><label>Entry Price</label><input id="simEntry" type="number" value="61200"></div>
-<div class="field"><label>Market Price</label><input id="simMark" type="number" placeholder="Auto-filled from ticker" style="color:var(--mist)"></div>
 </div>
-<div class="row-actions">
+
+<div id="tab-simulator" class="tab-content hd">
+<div class="sl">Position Simulator</div>
+<div class="pn">
+<div class="fg">
+<div class="fl"><label>Symbol</label><input id="simSymbol" value="BTC"></div>
+<div class="fl"><label>Side</label><select id="simSide"><option value="long">Long</option><option value="short">Short</option></select></div>
+<div class="fl"><label>Size (USDT)</label><input id="simSize" type="number" value="1000" min="1"></div>
+<div class="fl"><label>Leverage</label><input id="simLev" type="number" value="10" min="1" max="125"></div>
+<div class="fl"><label>Entry Price</label><input id="simEntry" type="number" value="61200"></div>
+<div class="fl"><label>Market Price</label><input id="simMark" type="number" placeholder="Fills from ticker" style="color:var(--mi)"></div>
+</div>
+<div class="ra">
 <button class="btn" onclick="simulate()">Run Simulation</button>
-<button class="btn btn-sm btn-dim" onclick="addSimToPortfolio()">+ Add to Portfolio</button>
+<button class="btn bs" onclick="addSimToPortfolio()">+ Add to Portfolio</button>
+<button class="btn bs bm" onclick="fetchSimPrice()">Get Live Price</button>
 </div>
-<div class="what-if-results" id="simResults"></div>
-<div class="status-line" id="simStatus"></div>
+<div id="simPriceDisplay" style="margin-bottom:10px;font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mi);padding:8px 12px;background:var(--nd);border-radius:4px"></div>
+<div class="wr" id="simResults"></div>
+<div class="st" id="simStatus"></div>
 </div>
 </div>
 
-<div id="tab-alerts" class="tab-content hidden">
-<div class="section-label">Telegram Alerts</div>
-<div class="panel">
-<div class="note" style="color:var(--brass);margin-bottom:12px"><strong>Note:</strong> Browser-based polling. Alerts stop when browser closes. Demo implementation for hackathon.</div>
-<div class="form-grid" style="grid-template-columns:1fr 1fr">
-<div class="field"><label>Bot Token</label><input id="tgToken" type="password" placeholder="BotFather token"></div>
-<div class="field"><label>Chat ID</label><input id="tgChat" placeholder="Your Telegram chat ID"></div>
+<div id="tab-alerts" class="tab-content hd">
+<div class="sl">Telegram Alerts</div>
+<div class="pn">
+<div class="nt" style="color:var(--br);margin-bottom:12px"><strong>Note:</strong> Browser-based polling. Alerts stop when browser closes. Demo implementation for hackathon.</div>
+<div class="fg" style="grid-template-columns:1fr 1fr">
+<div class="fl"><label>Bot Token</label><input id="tgToken" type="password" placeholder="BotFather token"></div>
+<div class="fl"><label>Chat ID</label><input id="tgChat" placeholder="Your Telegram chat ID"></div>
 </div>
-<div class="switch-row">
-<div class="field" style="max-width:160px"><label>Trigger (dist to liq)</label><select id="tgThreshold" style="width:100%;background:var(--navy-deep);border:1px solid var(--navy-line);color:var(--paper);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="3">3% Critical</option><option value="6" selected>6% Warning</option><option value="10">10% Caution</option><option value="15">15% Monitor</option></select></div>
-<div class="field" style="max-width:120px"><label>Interval</label><select id="tgIntervalSetting" style="width:100%;background:var(--navy-deep);border:1px solid var(--navy-line);color:var(--paper);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="15">15 sec</option><option value="30" selected>30 sec</option><option value="60">60 sec</option><option value="120">2 min</option><option value="300">5 min</option></select></div>
-<div class="field" style="max-width:140px"><label>Repeat cooldown</label><select id="tgRepeat" style="width:100%;background:var(--navy-deep);border:1px solid var(--navy-line);color:var(--paper);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="0">No repeat</option><option value="5" selected>5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="360">6 hours</option><option value="1440">24 hours</option></select></div>
+<div class="sr">
+<div class="fl" style="max-width:150px"><label>Trigger</label><select id="tgThreshold" style="width:100%;background:var(--nd);border:1px solid var(--nl);color:var(--pa);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="3">3% Critical</option><option value="6" selected>6% Warning</option><option value="10">10% Caution</option><option value="15">15% Monitor</option></select></div>
+<div class="fl" style="max-width:120px"><label>Interval</label><select id="tgIntervalSetting" style="width:100%;background:var(--nd);border:1px solid var(--nl);color:var(--pa);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="15">15 sec</option><option value="30" selected>30 sec</option><option value="60">60 sec</option><option value="120">2 min</option><option value="300">5 min</option></select></div>
+<div class="fl" style="max-width:140px"><label>Repeat cooldown</label><select id="tgRepeat" style="width:100%;background:var(--nd);border:1px solid var(--nl);color:var(--pa);padding:8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px"><option value="0">No repeat</option><option value="5" selected>5 min</option><option value="15">15 min</option><option value="30">30 min</option><option value="60">1 hour</option><option value="360">6 hours</option></select></div>
 </div>
-<label style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mist);display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
+<label style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--mi);display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:12px">
 <input type="checkbox" id="tgRecovery" checked>
 Notify when a position recovers above threshold
 </label>
-<div class="row-actions">
-<button class="btn btn-ok" onclick="startAlerts()">\u25b6 Start</button>
-<button class="btn btn-danger" onclick="stopAlerts()">\u25a0 Stop</button>
-<button class="btn btn-dim" onclick="snoozeAlerts(1)">Snooze 1h</button>
-<button class="btn btn-dim" onclick="snoozeAlerts(4)">Snooze 4h</button>
-<button class="btn btn-dim" onclick="snoozeAlerts(12)">Snooze 12h</button>
-<button class="btn btn-dim" onclick="clearLog()">Clear Log</button>
+<div class="ra">
+<button class="btn bo" onclick="startAlerts()">Start Monitor</button>
+<button class="btn bd" onclick="stopAlerts()">Stop Monitor</button>
+<button class="btn bm" onclick="snoozeAlerts(1)">Snooze 1h</button>
+<button class="btn bm" onclick="snoozeAlerts(4)">Snooze 4h</button>
+<button class="btn bm" onclick="snoozeAlerts(12)">Snooze 12h</button>
+<button class="btn bm" onclick="clearLog()">Clear Log</button>
 </div>
-<div class="inline-flex">
-<span id="tgStatus" class="status-line" style="margin-top:0"></span>
-<span id="tgSnoozeStatus" style="font-size:9px;color:var(--mist);font-family:'IBM Plex Mono',monospace"></span>
+<div class="if">
+<span id="tgStatus" class="st" style="margin-top:0"></span>
+<span id="tgSnoozeStatus" style="font-size:9px;color:var(--mi);font-family:'IBM Plex Mono',monospace"></span>
 </div>
-<div class="alerts-log" id="alertsLog">No alerts yet.</div>
+<div class="al" id="alertsLog">No alerts yet.</div>
 </div>
 </div>
 
-<div id="tab-about" class="tab-content hidden">
-<div class="panel">
-<p style="margin-bottom:12px;line-height:1.6"><strong>Sentinel</strong> — risk copilot for leveraged crypto portfolios. Built for OKX.AI Genesis Hackathon.</p>
+<div id="tab-about" class="tab-content hd">
+<div class="pn">
+<p style="margin-bottom:12px;line-height:1.6"><strong>Sentinel</strong> \u2014 risk copilot for leveraged crypto portfolios. Built for OKX.AI Genesis Hackathon.</p>
 <p style="margin-bottom:8px;font-size:13px"><strong>Features:</strong></p>
-<ul style="margin-left:22px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--mist)">
+<ul style="margin-left:22px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--mi)">
 <li>Real-time liquidation distance via live OKX pricing</li>
-<li>Funding rate monitoring — automatic pull from OKX</li>
-<li>Portfolio Health Score (0-100) — unified risk metric</li>
+<li>Funding rate monitoring \u2014 automatic pull from OKX</li>
+<li>Portfolio Health Score (0-100) \u2014 unified risk metric</li>
 <li>Maintenance margin via OKX position-tiers API</li>
-<li>What-If Simulator — play with symbol, size, direction, leverage</li>
-<li>Stress Twin — 4 crisis scenarios</li>
+<li>Simulator \u2014 play with symbol, size, direction, leverage</li>
+<li>Stress Twin \u2014 4 crisis scenarios, cross or isolated mode</li>
 <li>Multi-position tracking with aggregates</li>
 <li>P&amp;L (unrealized) per position</li>
-<li>Telegram alerts with snooze, recovery notification, custom intervals</li>
+<li>Telegram alerts with snooze, recovery, custom intervals</li>
 <li>OKX API import for real positions</li>
 </ul>
-<p style="font-size:11px;color:var(--mist)">Category: <span style="color:var(--brass)">Finance Copilot</span> | <a href="https://arbterminal.github.io/Sentinel-ASP/" style="color:var(--brass)">Demo</a></p>
+<p style="font-size:11px;color:var(--mi)">Category: <span style="color:var(--br)">Finance Copilot</span> | Demo: arbterminal.github.io/Sentinel-ASP/</p>
 </div>
 </div>
 
-<footer>Built for the <span>OKX.AI Genesis Hackathon</span> — live OKX market data, maintenance-margin-based liquidation, funding-aware risk model</footer>
+<footer>Built for the <span>OKX.AI Genesis Hackathon</span> \u2014 live OKX market data, maintenance-margin-based liquidation, funding-aware risk model</footer>
 </div>
 <script src="app.js"></script>
 <script src="telegram.js"></script>
