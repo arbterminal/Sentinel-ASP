@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sentinel — Risk Copilot for OKX</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
 <style>
@@ -116,25 +117,28 @@ footer span{color:var(--brass);}
 </div>
 
 <script>
-const ids = ['pair','side','leverage','entry','mark'];async function fetchLivePrice(){
+const ids = ['pair','side','leverage','entry','mark'];
+
+async function fetchLivePrice(){
  const pair = document.getElementById('pair').value.trim();
  const statusEl = document.getElementById('priceStatus');
- statusEl.textContent = 'Fetching...'; statusEl.className='status-line';
+ statusEl.textContent = 'Fetching...';
+ statusEl.className = 'status-line';
  try{
- const res = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${encodeURIComponent(pair)}`);
- const json = await res.json();
- if(json.code === '0' && json.data && json.data[0]){
- document.getElementById('mark').value = json.data[0].last;
- statusEl.textContent = 'Live price pulled from OKX at '+new Date().toLocaleTimeString();
- statusEl.className = 'status-line ok';
- recalc();
- } else {
- statusEl.textContent = 'OKX returned no data for this instrument — check the symbol.';
- statusEl.className = 'status-line err';
- }
+  const res = await fetch('https://www.okx.com/api/v5/market/ticker?instId=' + encodeURIComponent(pair));
+  const json = await res.json();
+  if(json.code === '0' && json.data && json.data[0]){
+   document.getElementById('mark').value = json.data[0].last;
+   statusEl.textContent = 'Live price pulled from OKX at ' + new Date().toLocaleTimeString();
+   statusEl.className = 'status-line ok';
+   recalc();
+  } else {
+   statusEl.textContent = 'OKX returned no data for this instrument — check the symbol.';
+   statusEl.className = 'status-line err';
+  }
  } catch(e){
- statusEl.textContent = 'Could not reach OKX public API from this browser (network/CORS). Enter mark price manually.';
- statusEl.className = 'status-line err';
+  statusEl.textContent = 'Could not reach OKX public API from this browser (network/CORS). Enter mark price manually.';
+  statusEl.className = 'status-line err';
  }
 }
 
@@ -144,45 +148,48 @@ async function fetchPositions(){
  const pass = document.getElementById('apiPass').value;
  const statusEl = document.getElementById('apiStatus');
  if(!key||!secret||!pass){
- statusEl.textContent = 'Enter API key, secret and passphrase first.';
- statusEl.className = 'status-line err';
- return;
+  statusEl.textContent = 'Enter API key, secret and passphrase first.';
+  statusEl.className = 'status-line err';
+  return;
  }
- statusEl.textContent = 'Signing request and calling OKX...'; statusEl.className='status-line';
+ statusEl.textContent = 'Signing request and calling OKX...';
+ statusEl.className = 'status-line';
  const timestamp = new Date().toISOString();
  const method = 'GET';
  const requestPath = '/api/v5/account/positions';
  const prehash = timestamp + method + requestPath;
  const sign = CryptoJS.enc.Base64.stringify(CryptoJS.HmacSHA256(prehash, secret));
  try{
- const res = await fetch('https://www.okx.com' + requestPath, {
- method: 'GET',
- headers: {
- 'OK-ACCESS-KEY': key,
- 'OK-ACCESS-SIGN': sign,
- 'OK-ACCESS-TIMESTAMP': timestamp,
- 'OK-ACCESS-PASSPHRASE': pass,
- 'Content-Type': 'application/json'
- }
- });
- const json = await res.json();
- if(json.code === '0'){
- const list = document.getElementById('positionsList');
- if(json.data.length === 0){
- list.innerHTML = '<div class="pos-item">No open positions found on this account.</div>';
- } else {
- list.innerHTML = json.data.map(p => `<div class="pos-item" onclick='loadPosition(${JSON.stringify(p).replace(/'/g,"&apos;")})'>
- <span>${p.instId} · ${p.posSide}</span><span>lev ${p.lever}x · entry ${p.avgPx}</span></div>`).join('');
- statusEl.textContent = json.data.length+' position(s) loaded — click one to analyze.';
- statusEl.className = 'status-line ok';
- }
- } else {
- statusEl.textContent = 'OKX rejected the request: ' + (json.msg || json.code);
- statusEl.className = 'status-line err';
- }
+  const res = await fetch('https://www.okx.com' + requestPath, {
+   method: 'GET',
+   headers: {
+    'OK-ACCESS-KEY': key,
+    'OK-ACCESS-SIGN': sign,
+    'OK-ACCESS-TIMESTAMP': timestamp,
+    'OK-ACCESS-PASSPHRASE': pass,
+    'Content-Type': 'application/json'
+   }
+  });
+  const json = await res.json();
+  if(json.code === '0'){
+   const list = document.getElementById('positionsList');
+   if(json.data.length === 0){
+    list.innerHTML = '<div class="pos-item">No open positions found on this account.</div>';
+   } else {
+    list.innerHTML = json.data.map(function(p){
+     return '<div class="pos-item" onclick=\'loadPosition(' + JSON.stringify(p).replace(/'/g,"&apos;") + ')\'>' +
+      '<span>' + p.instId + ' · ' + p.posSide + '</span><span>lev ' + p.lever + 'x · entry ' + p.avgPx + '</span></div>';
+    }).join('');
+    statusEl.textContent = json.data.length + ' position(s) loaded — click one to analyze.';
+    statusEl.className = 'status-line ok';
+   }
+  } else {
+   statusEl.textContent = 'OKX rejected the request: ' + (json.msg || json.code);
+   statusEl.className = 'status-line err';
+  }
  } catch(e){
- statusEl.textContent = 'Browser blocked this private call (CORS). This is expected for direct browser calls to private endpoints — a small server-side proxy is needed for full auto-import. Enter position manually below for now.';
- statusEl.className = 'status-line err';
+  statusEl.textContent = 'Browser blocked this private call (CORS). This is expected for direct browser calls to private endpoints — a small server-side proxy is needed for full auto-import. Enter position manually below for now.';
+  statusEl.className = 'status-line err';
  }
 }
 
@@ -192,23 +199,28 @@ function loadPosition(p){
  document.getElementById('leverage').value = p.lever;
  document.getElementById('entry').value = p.avgPx;
  fetchLivePrice();
-}function calcLiq(side, entry, leverage){
+}
+
+function calcLiq(side, entry, leverage){
  return side === 'long' ? entry * (1 - 1/leverage) : entry * (1 + 1/leverage);
 }
+
 function gaugeSVG(pct, critical){
  const clamped = Math.max(0, Math.min(100, pct));
  const angle = -90 + (Math.min(clamped,25)/25)*90;
  const color = critical ? '#C1462F' : (clamped < 15 ? '#C9A227' : '#4B8B6F');
  const rad = (angle-90) * Math.PI/180;
  const cx=55, cy=58, r=42;
- const nx = cx + r*Math.cos(rad), ny = cy + r*Math.sin(rad);
- return `<svg viewBox="0 0 110 65">
- <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="#26334A" stroke-width="6" stroke-linecap="round"/>
- <path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
- stroke-dasharray="${Math.PI*42}" stroke-dashoffset="${Math.PI*42*(1-Math.min(clamped,25)/25)}"/>
- <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2"/>
- <circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/></svg>`;
+ const nx = cx + r*Math.cos(rad);
+ const ny = cy + r*Math.sin(rad);
+ return '<svg viewBox="0 0 110 65">' +
+  '<path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="#26334A" stroke-width="6" stroke-linecap="round"/>' +
+  '<path d="M 13 58 A 42 42 0 0 1 97 58" fill="none" stroke="' + color + '" stroke-width="6" stroke-linecap="round"' +
+  ' stroke-dasharray="' + (Math.PI*42) + '" stroke-dashoffset="' + (Math.PI*42*(1-Math.min(clamped,25)/25)) + '"/>' +
+  '<line x1="' + cx + '" y1="' + cy + '" x2="' + nx + '" y2="' + ny + '" stroke="' + color + '" stroke-width="2"/>' +
+  '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="' + color + '"/></svg>';
 }
+
 function recalc(){
  const pair = document.getElementById('pair').value;
  const side = document.getElementById('side').value;
@@ -219,40 +231,40 @@ function recalc(){
  const distPct = mark > 0 ? Math.abs((mark - liq) / mark * 100) : 0;
  const critical = distPct < 6;
 
- document.getElementById('stats').innerHTML = `
- <div><span>Liquidation</span><div class="val ${critical?'danger':''}">${liq.toFixed(2)}</div></div>
- <div><span>Distance</span><div class="val ${critical?'danger':''}">${distPct.toFixed(1)}%</div></div>`;
+ document.getElementById('stats').innerHTML =
+  '<div><span>Liquidation</span><div class="val' + (critical?' danger':'') + '">' + liq.toFixed(2) + '</div></div>' +
+  '<div><span>Distance</span><div class="val' + (critical?' danger':'') + '">' + distPct.toFixed(1) + '%</div></div>';
  document.getElementById('gaugeBox').innerHTML = gaugeSVG(distPct, critical);
 
  const banner = document.getElementById('alertBanner');
  if(critical){
- const safeLev = Math.max(1, Math.floor(1/(distPct/100 + 0.05)));
- banner.classList.add('show');
- document.getElementById('alertText').innerHTML =
- '<strong>'+pair+'</strong> is '+distPct.toFixed(1)+'% from liquidation. Recommendation: reduce leverage to '+safeLev+'x or add margin.';
+  var safeLev = Math.max(1, Math.floor(1/(distPct/100 + 0.05)));
+  banner.classList.add('show');
+  document.getElementById('alertText').innerHTML =
+   '<strong>' + pair + '</strong> is ' + distPct.toFixed(1) + '% from liquidation. Recommendation: reduce leverage to ' + safeLev + 'x or add margin.';
  } else {
- banner.classList.remove('show');
+  banner.classList.remove('show');
  }
 
- const scenarios = [
- {name:'2022-style crash', mag:0.38},
- {name:'Flash crash (15 min)', mag:0.23},
- {name:'Correction', mag:0.12}
+ var scenarios = [
+  {name:'2022-style crash', mag:0.38},
+  {name:'Flash crash (15 min)', mag:0.23},
+  {name:'Correction', mag:0.12}
  ];
- document.getElementById('scenarios').innerHTML = scenarios.map(s=>{
- const shockMark = side === 'long' ? mark*(1-s.mag) : mark*(1+s.mag);
- const liquidated = side === 'long' ? shockMark <= liq : shockMark >= liq;
- const newDist = liquidated ? 0 : Math.abs((shockMark - liq)/shockMark*100);
- const safeLev = Math.max(1, Math.floor(1/(s.mag + 0.05)));
- return `<div class="scenario ${liquidated?'liquidated':''}">
- <h4>${s.name}</h4>
- <div class="impact">${liquidated ? 'LIQUIDATED' : newDist.toFixed(1)+'% buffer left'}</div>
- <p>Price moves ${(s.mag*100).toFixed(0)}% against the position.</p>
- <div class="hedge">To survive: leverage ≤ ${safeLev}x</div>
- </div>`;
+ document.getElementById('scenarios').innerHTML = scenarios.map(function(s){
+  var shockMark = side === 'long' ? mark*(1-s.mag) : mark*(1+s.mag);
+  var liquidated = side === 'long' ? shockMark <= liq : shockMark >= liq;
+  var newDist = liquidated ? 0 : Math.abs((shockMark - liq)/shockMark*100);
+  var safeLev2 = Math.max(1, Math.floor(1/(s.mag + 0.05)));
+  return '<div class="scenario' + (liquidated?' liquidated':'') + '">' +
+   '<h4>' + s.name + '</h4>' +
+   '<div class="impact">' + (liquidated ? 'LIQUIDATED' : newDist.toFixed(1)+'% buffer left') + '</div>' +
+   '<p>Price moves ' + (s.mag*100).toFixed(0) + '% against the position.</p>' +
+   '<div class="hedge">To survive: leverage \u2264 ' + safeLev2 + 'x</div></div>';
  }).join('');
 }
-ids.forEach(id => document.getElementById(id).addEventListener('input', recalc));
+
+ids.forEach(function(id){ document.getElementById(id).addEventListener('input', recalc); });
 recalc();
 fetchLivePrice();
 </script>
