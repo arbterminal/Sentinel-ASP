@@ -92,6 +92,7 @@ async function tgCheck(){
    var was=RECOVERY_SENT[p.id]&&RECOVERY_SENT[p.id].triggered;
    if(recovery&&!trig&&was&&RECOVERY_SENT[p.id]&&now-RECOVERY_SENT[p.id].sentAt>60000){
     delete RECOVERY_SENT[p.id];
+    var fundStr=p.fundingRate!==undefined?'Funding: '+(p.fundingRate*100).toFixed(4)+'% | '+(p.fundingDrain>=0?'+':'')+p.fundingDrain.toFixed(2)+' USDT/d':'';
     var rmsg='\u{1F504} SENTINEL RECOVERY NOTIFICATION \u{1F504}\n'+
      '```\n'+
      'Position: '+p.symbol+' '+se+' '+p.side+' | '+p.leverage+'x\n'+
@@ -99,6 +100,7 @@ async function tgCheck(){
      'Liq at:  $'+liq.toFixed(2)+'\n'+
      'Mark:    $'+tl.toFixed(2)+'\n'+
      'P&L:     '+pnlStr+'\n'+
+     fundStr+'\n'+
      '```';
     if(APP.tgToken&&APP.tgChat&&!snoozed){
      try{
@@ -119,6 +121,7 @@ async function tgCheck(){
     var sendp=!last||(now-last>=repeatMs);
     if(repeatMs===0&&last)sendp=false;
     if(sendp){
+     var fundStr=p.fundingRate!==undefined?'Funding:  '+(p.fundingRate*100).toFixed(4)+'% | '+(p.fundingDrain>=0?'+':'')+p.fundingDrain.toFixed(2)+' USDT/d':'';
      var msg='\u{1F6A8} SENTINEL LIQUIDATION ALERT \u{1F6A8}\n'+
       '```\n'+
       'Position: '+p.symbol+' '+se+' '+p.side+' | '+p.leverage+'x\n'+
@@ -128,8 +131,9 @@ async function tgCheck(){
       'Liq at:   $'+liq.toFixed(2)+'\n'+
       'Dist:     '+p.distPct.toFixed(1)+'% '+de+'\n'+
       'P&L:      '+pnlStr+'\n'+
+      fundStr+'\n'+
       'Time:     '+new Date().toLocaleString()+'\n'+
-      '```';
+      '```'}]};
      try{
       var up=await fetch('https://api.telegram.org/bot'+APP.tgToken+'/sendMessage',{
        method:'POST',headers:{'Content-Type':'application/json'},
