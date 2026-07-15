@@ -453,6 +453,7 @@ window.simulate=simulate;
 window.addSimToPortfolio=addSimToPortfolio;
 window.updateSimLive=updateSimLive;
 window.setStressMode=setStressMode;
+window.recalcAll=recalcAll;
 
 // Init
 function init(){
