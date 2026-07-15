@@ -22,6 +22,19 @@ function clearLog(){
  if(l) l.innerHTML = '';
 }
 
+var SIREN = '\u{1F6A8}';
+var RECOVER = '\u{1F504}';
+var GREEN = '\u{1F7E2}';
+var RED = '\u{1F534}';
+var ORANGE = '\u{1F7E0}';
+var YELLOW = '\u{1F7E1}';
+var MONITOR = '\u{1F6F0}';
+var STOP = '\u{1F6D1}';
+var BELL = '\u{23F0}';
+
+function sideEmoji(side){ return side === 'long' ? GREEN : RED; }
+function distEmoji(pct){ return pct <= 3 ? RED : pct <= 6 ? YELLOW : pct <= 10 ? ORANGE : GREEN; }
+
 function startAlerts(){
  var token = el('tgToken').value.trim();
  var chat = el('tgChat').value.trim();
@@ -44,7 +57,7 @@ function startAlerts(){
  st.textContent = 'Monitoring ' + APP.positions.length + ' position(s)';
  st.className = 'st ok';
  el('tgSnoozeStatus').textContent = '';
- addLog('Monitor started | threshold: '+APP.tgThreshold+'% | interval: '+intervalSec+'s');
+ addLog(MONITOR+' Monitor started | threshold: '+APP.tgThreshold+'% | interval: '+intervalSec+'s');
 
  if(INTERVAL) clearInterval(INTERVAL);
  INTERVAL = setInterval(tgCheck, intervalSec * 1000);
@@ -57,14 +70,14 @@ function stopAlerts(){
  if(INTERVAL){ clearInterval(INTERVAL); INTERVAL = null; }
  el('tgStatus').textContent = 'Monitor stopped.';
  el('tgStatus').className = 'st';
- addLog('Monitor stopped.');
+ addLog(STOP+' Monitor stopped.');
 }
 
 function snoozeAlerts(hours){
  if(!RUNNING){ el('tgStatus').textContent = 'Start the monitor first.'; el('tgStatus').className = 'st er'; return; }
  SNOOZE_UNTIL = Date.now() + hours * 3600000;
- el('tgSnoozeStatus').textContent = 'Snoozed '+hours+'h (until '+new Date(SNOOZE_UNTIL).toLocaleTimeString()+')';
- addLog('Snoozed for '+hours+' hours.');
+ el('tgSnoozeStatus').textContent = BELL+' Snoozed '+hours+'h (until '+new Date(SNOOZE_UNTIL).toLocaleTimeString()+')';
+ addLog(BELL+' Snoozed for '+hours+' hours.');
 }
 
 async function tgCheck(){
@@ -78,13 +91,12 @@ async function tgCheck(){
  var token = APP.tgToken;
  var chat = APP.tgChat;
 
- if(!token || !chat){ return; }
+ if(!token || !chat) return;
 
  for(var i = 0; i < APP.positions.length; i++){
   var p = APP.positions[i];
   if(!p || !p.resolvedPair) continue;
 
-  // Check if this pair has an in-flight request
   var pairKey = p.resolvedPair;
   if(APP.inflightPairs && APP.inflightPairs[pairKey]) continue;
   if(APP.inflightPairs) APP.inflightPairs[pairKey] = true;
@@ -117,46 +129,41 @@ async function tgCheck(){
 
    var triggered = p.distPct <= threshold;
    var pnlStr = (p.pnl >= 0 ? '+' : '') + p.pnl.toFixed(2) + ' USDT';
-   var sideEmoji = p.side === 'long' ? '\\u{1F7E2}' : '\\u{1F534}';
-   var distEmoji = p.distPct <= 3 ? '\\u{1F534}' : p.distPct <= 6 ? '\\u{1F7E1}' : p.distPct <= 10 ? '\\u{1F7E0}' : '\\u{1F7E2}';
 
    // Recovery notification
-   if(recovery && !triggered && RECOVERY_SENT[p.id] && now - RECOVERY_SENT[p.id].sentAt > 60000){
-    var wasTriggered = RECOVERY_SENT[p.id] && RECOVERY_SENT[p.id].triggered;
-    if(wasTriggered){
-     delete RECOVERY_SENT[p.id];
-     var fundStr = p.fundingRate !== undefined ? 'Funding: ' + (p.fundingRate*100).toFixed(4) + '% | ' + (p.fundingDrain >= 0 ? '+' : '') + p.fundingDrain.toFixed(2) + ' USDT/d' : '';
-     var rmsg = '\\u{1F504} SENTINEL RECOVERY NOTIFICATION \\u{1F504}\\n' +
-      '```\\n' +
-      'Position: ' + p.symbol + ' ' + sideEmoji + ' ' + p.side + ' | ' + p.leverage + 'x\\n' +
-      'Distance: ' + p.distPct.toFixed(1) + '%\\n' +
-      'Liq at:  $' + liq.toFixed(2) + '\\n' +
-      'Mark:    $' + mark.toFixed(2) + '\\n' +
-      'P&L:     ' + pnlStr + '\\n' +
-      fundStr + '\\n' +
-      '```';
+   if(recovery && !triggered && RECOVERY_SENT[p.id] && RECOVERY_SENT[p.id].triggered && now - RECOVERY_SENT[p.id].sentAt > 60000){
+    delete RECOVERY_SENT[p.id];
+    var fundStr = p.fundingRate !== undefined ? 'Funding: ' + (p.fundingRate*100).toFixed(4) + '% | ' + (p.fundingDrain >= 0 ? '+' : '') + p.fundingDrain.toFixed(2) + ' USDT/d' : '';
+    var rmsg = RECOVER+' SENTINEL RECOVERY NOTIFICATION '+RECOVER+'\n'+
+     '```\n'+
+     'Position: '+p.symbol+' '+sideEmoji(p.side)+' '+p.side+' | '+p.leverage+'x\n'+
+     'Distance: '+p.distPct.toFixed(1)+'%\n'+
+     'Liq at:  $'+liq.toFixed(2)+'\n'+
+     'Mark:    $'+mark.toFixed(2)+'\n'+
+     'P&L:     '+pnlStr+'\n'+
+     fundStr+'\n'+
+     '```';
 
-     try{
-      var rr = await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
-       method: 'POST',
-       headers: {'Content-Type': 'application/json'},
-       body: JSON.stringify({
-        chat_id: chat,
-        text: rmsg,
-        parse_mode: 'Markdown',
-        reply_markup: { inline_keyboard: [[
-         {text:'Snooze 1h', callback_data:'snooze_1'},
-         {text:'Snooze 4h', callback_data:'snooze_4'},
-         {text:'Continue', callback_data:'continue'},
-         {text:'Stop', callback_data:'stop'}
-        ]]}
-       })
-      });
-      var rj = await rr.json();
-      if(rj.ok) addLog('Recovery sent for ' + p.symbol);
-      else addLog('Recovery error: '+(rj.description||'unknown'));
-     }catch(e){ addLog('Recovery fail: '+e.message); }
-    }
+    try{
+     var rr = await fetch('https://api.telegram.org/bot'+token+'/sendMessage', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+       chat_id: chat,
+       text: rmsg,
+       parse_mode: 'Markdown',
+       reply_markup: { inline_keyboard: [[
+        {text:'Snooze 1h', callback_data:'snooze_1'},
+        {text:'Snooze 4h', callback_data:'snooze_4'},
+        {text:'Continue', callback_data:'continue'},
+        {text:'Stop', callback_data:'stop'}
+       ]]}
+      })
+     });
+     var rj = await rr.json();
+     if(rj.ok) addLog(RECOVER+' Recovery sent for '+p.symbol);
+     else addLog('Recovery error: '+(rj.description||'unknown'));
+    }catch(e){ addLog('Recovery fail: '+e.message); }
    }
 
    // Liquidation alert
@@ -167,21 +174,21 @@ async function tgCheck(){
 
     if(shouldSend){
      var fundStr2 = p.fundingRate !== undefined ? 'Funding: ' + (p.fundingRate*100).toFixed(4) + '% | ' + (p.fundingDrain >= 0 ? '+' : '') + p.fundingDrain.toFixed(2) + ' USDT/d' : '';
-     var msg = '\\u{1F6A8} SENTINEL LIQUIDATION ALERT \\u{1F6A8}\\n' +
-      '```\\n' +
-      'Position: ' + p.symbol + ' ' + sideEmoji + ' ' + p.side + ' | ' + p.leverage + 'x\\n' +
-      'Size:     ' + p.sizeUsdt.toFixed(0) + ' USDT\\n' +
-      'Entry:    $' + p.entryPrice.toFixed(2) + '\\n' +
-      'Mark:     $' + mark.toFixed(2) + '\\n' +
-      'Liq at:   $' + liq.toFixed(2) + '\\n' +
-      'Dist:     ' + p.distPct.toFixed(1) + '% ' + distEmoji + '\\n' +
-      'P&L:      ' + pnlStr + '\\n' +
-      fundStr2 + '\\n' +
-      'Time:     ' + new Date().toLocaleString() + '\\n' +
+     var msg = SIREN+' SENTINEL LIQUIDATION ALERT '+SIREN+'\n'+
+      '```\n'+
+      'Position: '+p.symbol+' '+sideEmoji(p.side)+' '+p.side+' | '+p.leverage+'x\n'+
+      'Size:     '+p.sizeUsdt.toFixed(0)+' USDT\n'+
+      'Entry:    $'+p.entryPrice.toFixed(2)+'\n'+
+      'Mark:     $'+mark.toFixed(2)+'\n'+
+      'Liq at:   $'+liq.toFixed(2)+'\n'+
+      'Dist:     '+p.distPct.toFixed(1)+'% '+distEmoji(p.distPct)+'\n'+
+      'P&L:      '+pnlStr+'\n'+
+      fundStr2+'\n'+
+      'Time:     '+new Date().toLocaleString()+'\n'+
       '```';
 
      try{
-      var up = await fetch('https://api.telegram.org/bot' + token + '/sendMessage', {
+      var up = await fetch('https://api.telegram.org/bot'+token+'/sendMessage', {
        method: 'POST',
        headers: {'Content-Type': 'application/json'},
        body: JSON.stringify({
@@ -200,9 +207,9 @@ async function tgCheck(){
       if(uj.ok){
        APP.tgLastSent[p.id] = now;
        RECOVERY_SENT[p.id] = { triggered: true, sentAt: now };
-       addLog('Alert sent for ' + p.symbol + ' (dist: ' + p.distPct.toFixed(1) + '%)');
+       addLog(SIREN+' Alert sent for '+p.symbol+' (dist: '+p.distPct.toFixed(1)+'%)');
       } else {
-       addLog('TG error: ' + (uj.description || 'unknown'));
+       addLog('TG error: '+(uj.description||'unknown'));
       }
      }catch(e){ addLog('Alert fail: '+e.message); }
     }
@@ -213,7 +220,7 @@ async function tgCheck(){
   if(APP.inflightPairs) delete APP.inflightPairs[pairKey];
  }
 
- window.recalcAll();
+ if(typeof window.recalcAll === 'function') window.recalcAll();
 }
 
 window.startAlerts = startAlerts;
